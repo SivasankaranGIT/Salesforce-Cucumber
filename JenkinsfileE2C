@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+    environment {
+    	PATH = "/local/software/maven-3.5.4/bin:$PATH"
+	}
+    stages {
+    		
+    	stage('Setup') {
+    		steps {
+       			 dir ('Report') {
+           			 deleteDir()
+        		}
+   			}
+		}
+
+    	stage ('Run Parallel Tests') {
+    		parallel {
+        		stage ('parallel_job_Email2Case_Part1') {
+
+            		steps {
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @E2CJob1 or @logoutE2C_1"'
+                	}
+        		}
+        
+        		stage ('parallel_job_Email2Case_Part2') {
+
+            		steps {
+            				sleep 60
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @E2CJob2 or @logoutE2C_2"'
+                	}
+        		}
+        		
+        		 stage ('parallel_job_Email2Case_Part3') {
+
+            		steps {
+            				sleep 120
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @E2CJob3 or @logoutE2C_3"'
+                	}
+        		}
+        		
+                stage ('parallel_job_Email2Case_Part4') {
+
+            		steps {
+            				sleep 180
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @E2CJob4 or @logoutE2C_4"'
+                	}
+        		}
+
+        		stage ('parallel_job_Email2Case_A3K') {
+                    steps {
+                            sleep 240
+                            sh 'mvn clean install -D"cucumber.filter.tags=@login or @Email2CaseA3K or @logoutE2C_A3K"'
+                    }
+                }
+        	}
+        }
+        
+      }
+        post {
+        	always {
+
+				emailext attachmentsPattern: '**/Report/*.xlsx', body: '''${SCRIPT, template="groovy-html.template"}''', mimeType: 'text/html', subject: 'Email2Case Parallel Automation Test Execution Report', to: 'Ashish.Gupta2@mheducation.com,abinaya.m@mheducation.com,Sivasankaran.Periyasamy@mheducation.com'
+
+        		}
+        }
+ 
+}

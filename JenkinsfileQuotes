@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    environment {
+    	PATH = "/local/software/maven-3.5.4/bin:$PATH"
+	}
+    stages {
+    		
+    	stage('Setup') {
+    		steps {
+       			 dir ('Report') {
+           			 deleteDir()
+        		}
+   			}
+		}
+
+    	stage ('Run Parallel Tests') {
+    		parallel {
+        		stage ('parallel_job_Quote_Samples') {
+
+            		steps {
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @Quote or @logout"'
+                	}
+        		}       
+        	}
+        }
+        
+      }
+        post {
+        	always {
+
+				emailext attachmentsPattern: '**/target/cucumber-reports/*Group.html', body: '''${SCRIPT, template="groovy-html.template"}''', mimeType: 'text/html', subject: 'GCRM UAT Regression Test Automation Results (Only MHE Quotes)', to: 'ashish.gupta2@mheducation.com,shivdeep.singh@mheducation.com,Sivasankaran.Periyasamy@mheducation.com,anshul.srivastava@mheducation.com,ramkaran.singh@mheducation.com,suraj.kumar@mheducation.com'
+
+        		}
+        }
+ 
+}

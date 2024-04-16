@@ -1,0 +1,75 @@
+pipeline {
+    agent any
+    environment {
+    	PATH = "/local/software/maven-3.5.4/bin:$PATH"
+	}
+    stages {
+    		
+    	stage('Setup') {
+    		steps {
+       			 dir ('Report') {
+           			 deleteDir()
+        		}
+   			}
+		}
+
+    	stage ('Run Parallel Tests') {
+    		parallel {
+        		stage ('parallel_job_Quote_Samples') {
+
+            		steps {
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @logout"'
+                	}
+        		}
+        
+        		stage ('parallel_job_OpportunitiesDependentTCs') {
+
+            		steps {
+            				sleep 60
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @logout"'
+                	}
+        		}
+        		
+        		stage ('parallel_job_OpportunitiesNonDependentTCs') {
+
+            		steps {
+            				sleep 120
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @logout"'
+                	}
+        		}
+        		stage ('parallel_job_Cases') {
+
+            		steps {
+            				sleep 180
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @logout"'
+                	}
+        		}
+        
+        		stage ('parallel_job_Others') {
+
+            		steps {
+            				sleep 240
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @logout"'
+                	}
+        		} 
+        		
+        		stage ('parallel_job_FSL_Product_ProductCatalog_Community_DiscountWizard_A3K') {
+
+            		steps {
+            				sleep 300
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @logout"'
+                	}
+        		}
+        	}
+        }
+        
+      }
+        post {
+        	always {
+
+				emailext attachmentsPattern: '**/target/cucumber-reports/*Group.html', body: '''${SCRIPT, template="groovy-html.template"}''', mimeType: 'text/html', subject: 'GCRM UAT Regression Test Automation Results', to: 'Sivasankaran.Periyasamy@mheducation.com'
+
+        		}
+        }
+ 
+}

@@ -1,0 +1,90 @@
+def msg = "GCRM UAT Regression Test Automation Results"
+def passCount = 0
+def failCount = 0
+def skipCount = 0
+def totalCount = 0
+pipeline {
+    agent any
+    environment {
+    	PATH = "/local/software/maven-3.5.4/bin:$PATH"
+	}
+    stages {
+    		
+    	stage('Setup') {
+    		steps {
+       			 dir ('Report') {
+           			 deleteDir()
+        		}
+   			}
+		}
+
+    	stage ('Run Parallel Tests') {
+    		parallel {
+        		stage ('parallel_job_1') {
+
+            		steps {
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @ConsultantJob1 or @logout"'
+                   			junit '**/target/surefire-reports/*.xml'
+                	}
+        		}
+        
+        		stage ('parallel_job_2') {
+
+            		steps {
+            				sleep 60
+                   			sh 'mvn clean install -D"cucumber.filter.tags=@login or @ConsultantJob2 or @logout"'
+                   			junit '**/target/surefire-reports/*.xml'
+                   			
+                	}
+        		}
+ 
+        	}
+        }
+        
+      }
+    post {
+        always {
+                script {
+                def testResultAction = currentBuild.rawBuild.getAction(hudson.tasks.junit.TestResultAction.class)
+
+                if (testResultAction) {
+                    passCount = testResultAction.getResult().getPassCount()
+                    failCount = testResultAction.getResult().getFailCount()
+                    skipCount = testResultAction.getResult().getSkipCount()
+                    totalCount = testResultAction.getResult().getTotalCount()
+
+                    echo "Test Pass Count: ${passCount}"
+                    echo "Test Fail Count: ${failCount}"
+                    echo "Test Skip Count: ${skipCount}"
+                    echo "Test Skip Count: ${totalCount}"
+                } else {
+                    echo "No test results found for this build."
+                }
+            }
+            emailext (
+                subject: "${msg}",
+                body: """
+The "UAT Parallel Automation Test" has completed. Please refer the attached files for the test results.
+
+PASSED :  ${passCount} | FAILED :  ${failCount} | SKIPPED :  ${skipCount} | TOTAL :  ${totalCount}
+
+Please find the Jenkins build details below -
+
+Job Name	: 	${env.JOB_NAME.split('/')[0]}
+Status		: 	${currentBuild.currentResult}
+Build No.	: 	${currentBuild.getDisplayName()}
+Duration	: 	${currentBuild.durationString}
+Cause		: 	${currentBuild.getBuildCauses()[0].shortDescription}
+
+
+For more details, please refer console output (Jenkins access required) - "${env.BUILD_URL}"
+
+If you have any questions or concerns, please contact the QA Automation team.
+                """,
+               attachmentsPattern: '**/target/cucumber-reports/*Group.html',
+               to: 'Sivasankaran.Periyasamy@mheducation.com'
+            )
+        }
+    }
+ 
+}
