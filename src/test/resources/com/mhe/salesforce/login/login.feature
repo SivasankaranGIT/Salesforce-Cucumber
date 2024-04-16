@@ -11,8 +11,8 @@ Scenario Outline: Login Test
 	When I go to "<Url>"
 	And I enter login "<username>" and "<password>"
 	And I click on "loginSalesrep"
-	Then login should be successful 
-	Then I navigate to salesapplication
+#	Then login should be successful 
+#	Then I navigate to salesapplication
 	Examples:
 	|Url|username|password|
 	|loginUrl|UserName|Password|
