@@ -3,10 +3,10 @@ name: Demo workflow
 on: 
   push:
     branches: 
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 jobs:
@@ -15,11 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: print hi
-      run: echo "Hi"
-      shell: bash
+        run: echo "Hi"
+        shell: bash
   regression_test_job:
     runs-on: ubuntu-latest
     steps:
       - name: print bye
-      run: echo "Bye"
-      shell: bash
+        run: echo "Bye"
+        shell: bash
